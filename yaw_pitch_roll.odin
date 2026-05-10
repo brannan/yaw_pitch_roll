@@ -1,10 +1,20 @@
 package main
 
+import "core:math"
 import rl "vendor:raylib"
 
 SCREEN_WIDTH :: 1600
 SCREEN_HEIGHT :: 900
 WINDOW_TITLE :: "yaw, pitch, roll"
+
+// Rates are degrees per second (tuned to match the old per-frame feel at ~60 FPS).
+PITCH_STICK_DEG_PER_SEC :: 36.0
+PITCH_RETURN_DEG_PER_SEC :: 18.0
+PITCH_DEADBAND_DEG :: 0.3
+YAW_ROLL_STICK_DEG_PER_SEC :: 60.0
+YAW_ROLL_RETURN_DEG_PER_SEC :: 30.0
+// Cap a single frame’s delta so a long hitch does not apply huge angle steps.
+MAX_FRAME_TIME :: 0.1
 
 main :: proc() {
     rl.InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, WINDOW_TITLE)
@@ -35,32 +45,48 @@ main :: proc() {
     rl.SetTargetFPS(60)
 
     for !rl.WindowShouldClose() {
+        dt := rl.GetFrameTime()
+        if dt > MAX_FRAME_TIME {
+            dt = MAX_FRAME_TIME
+        }
 
         if rl.IsKeyDown(.DOWN) {
-            pitch += 0.6
+            pitch += PITCH_STICK_DEG_PER_SEC * dt
         } else if rl.IsKeyDown(.UP) {
-            pitch -= 0.6
+            pitch -= PITCH_STICK_DEG_PER_SEC * dt
         } else {
-            if (pitch > 0.3) { pitch -= 0.3 }
-            else if (pitch < -0.3) { pitch += 0.3 }
+            step := PITCH_RETURN_DEG_PER_SEC * dt
+            if pitch > PITCH_DEADBAND_DEG {
+                pitch = math.max(PITCH_DEADBAND_DEG, pitch - step)
+            } else if pitch < -PITCH_DEADBAND_DEG {
+                pitch = math.min(-PITCH_DEADBAND_DEG, pitch + step)
+            }
         }
 
         if rl.IsKeyDown(.S) {
-            yaw -= 1.0
+            yaw -= YAW_ROLL_STICK_DEG_PER_SEC * dt
         } else if rl.IsKeyDown(.A) {
-            yaw += 1.0
+            yaw += YAW_ROLL_STICK_DEG_PER_SEC * dt
         } else {
-            if (yaw > 0.0) { yaw -= 0.5 }
-            else if (yaw < 0.0) { yaw += 0.5 }
+            step := YAW_ROLL_RETURN_DEG_PER_SEC * dt
+            if yaw > 0.0 {
+                yaw = math.max(0.0, yaw - step)
+            } else if yaw < 0.0 {
+                yaw = math.min(0.0, yaw + step)
+            }
         }
 
         if rl.IsKeyDown(.LEFT) {
-            roll -= 1.0
+            roll -= YAW_ROLL_STICK_DEG_PER_SEC * dt
         } else if rl.IsKeyDown(.RIGHT) {
-            roll += 1.0
+            roll += YAW_ROLL_STICK_DEG_PER_SEC * dt
         } else {
-            if (roll > 0.0) { roll -= 0.5 }
-            else if (roll < 0.0) { roll += 0.5 }
+            step := YAW_ROLL_RETURN_DEG_PER_SEC * dt
+            if roll > 0.0 {
+                roll = math.max(0.0, roll - step)
+            } else if roll < 0.0 {
+                roll = math.min(0.0, roll + step)
+            }
         }
 
         model.transform = rl.MatrixRotateXYZ({
