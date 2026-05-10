@@ -42,7 +42,7 @@ main :: proc() {
             pitch -= 0.6
         } else {
             if (pitch > 0.3) { pitch -= 0.3 }
-            else if (pitch < 0.3) { pitch += 0.3 }
+            else if (pitch < -0.3) { pitch += 0.3 }
         }
 
         if rl.IsKeyDown(.S) {
@@ -50,8 +50,8 @@ main :: proc() {
         } else if rl.IsKeyDown(.A) {
             yaw += 1.0
         } else {
-            if (yaw > 1.0) { yaw -= 1.0 }
-            else if (yaw < 1.0) { yaw += 1.0 }
+            if (yaw > 0.0) { yaw -= 0.5 }
+            else if (yaw < 0.0) { yaw += 0.5 }
         }
 
         if rl.IsKeyDown(.LEFT) {
@@ -59,8 +59,8 @@ main :: proc() {
         } else if rl.IsKeyDown(.RIGHT) {
             roll += 1.0
         } else {
-            if (roll > 1.0) { roll -= 1.0 }
-            else if (roll < 1.0) { roll += 1.0 }
+            if (roll > 0.0) { roll -= 0.5 }
+            else if (roll < 0.0) { roll += 0.5 }
         }
 
         model.transform = rl.MatrixRotateXYZ({
@@ -79,7 +79,7 @@ main :: proc() {
             rl.EndMode3D()
 
             endText :: "Press [Esc] to End."
-            pitchText :: "Pitch conrolled with UP and DOWN arrows"
+            pitchText :: "Pitch controlled with UP and DOWN arrows"
             rollText :: "Roll controlled with LEFT and RIGHT arrows"
             yawText :: "Yaw controlled with A and S keys"
 
